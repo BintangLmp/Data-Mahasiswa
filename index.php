@@ -4,7 +4,35 @@ include 'koneksi.php';
 // Cek apakah ada keyword pencarian
 $keyword = isset($_GET['search']) ? $_GET['search'] : '';
 
-// Query untuk pencarian
+// Jumlah data per halaman
+$limit = 5;
+
+// Halaman aktif (default: 1)
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($page - 1) * $limit;
+
+// Query untuk menghitung total data
+if (!empty($keyword)) {
+    $query_count = "SELECT COUNT(*) as total FROM tb_mahasiswa 
+                    WHERE nim LIKE '%$keyword%' 
+                    OR nama LIKE '%$keyword%' 
+                    OR prodi LIKE '%$keyword%' 
+                    OR angkatan LIKE '%$keyword%' 
+                    OR hobi LIKE '%$keyword%' 
+                    OR cita_cita LIKE '%$keyword%' 
+                    OR makanan_kesukaan LIKE '%$keyword%'";
+} else {
+    $query_count = "SELECT COUNT(*) as total FROM tb_mahasiswa";
+}
+
+$result_count = mysqli_query($koneksi, $query_count);
+$row_count = mysqli_fetch_assoc($result_count);
+$total_data = $row_count['total'];
+
+// Hitung total halaman
+$total_pages = ceil($total_data / $limit);
+
+// Query untuk menampilkan data dengan pagination
 if (!empty($keyword)) {
     $query = "SELECT * FROM tb_mahasiswa 
               WHERE nim LIKE '%$keyword%' 
@@ -13,10 +41,10 @@ if (!empty($keyword)) {
               OR angkatan LIKE '%$keyword%' 
               OR hobi LIKE '%$keyword%' 
               OR cita_cita LIKE '%$keyword%' 
-              OR makanan_kesukaan LIKE '%$keyword%'";
+              OR makanan_kesukaan LIKE '%$keyword%' 
+              LIMIT $limit OFFSET $offset";
 } else {
-    // Jika tidak ada keyword, tampilkan semua data
-    $query = "SELECT * FROM tb_mahasiswa";
+    $query = "SELECT * FROM tb_mahasiswa LIMIT $limit OFFSET $offset";
 }
 
 $result = mysqli_query($koneksi, $query);
@@ -90,6 +118,29 @@ $result = mysqli_query($koneksi, $query);
                 <?php endwhile; ?>
             </tbody>
         </table>
+
+        <!-- Pagination -->
+        <div class="flex justify-center mt-6">
+            <nav class="inline-flex rounded-md shadow-sm">
+                <?php if ($page > 1): ?>
+                    <a href="?page=<?php echo $page - 1; ?>&search=<?php echo urlencode($keyword); ?>" class="px-4 py-2 border border-gray-300 rounded-l-lg bg-white text-gray-700 hover:bg-gray-50">
+                        Sebelumnya
+                    </a>
+                <?php endif; ?>
+
+                <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                    <a href="?page=<?php echo $i; ?>&search=<?php echo urlencode($keyword); ?>" class="px-4 py-2 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 <?php echo ($i == $page) ? 'bg-blue-500 text-white' : ''; ?>">
+                        <?php echo $i; ?>
+                    </a>
+                <?php endfor; ?>
+
+                <?php if ($page < $total_pages): ?>
+                    <a href="?page=<?php echo $page + 1; ?>&search=<?php echo urlencode($keyword); ?>" class="px-4 py-2 border border-gray-300 rounded-r-lg bg-white text-gray-700 hover:bg-gray-50">
+                        Selanjutnya
+                    </a>
+                <?php endif; ?>
+            </nav>
+        </div>
     </div>
 </body>
 
