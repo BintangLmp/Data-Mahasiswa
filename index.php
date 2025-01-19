@@ -1,7 +1,24 @@
 <?php
 include 'koneksi.php';
 
-$query = "SELECT * FROM tb_mahasiswa";
+// Cek apakah ada keyword pencarian
+$keyword = isset($_GET['search']) ? $_GET['search'] : '';
+
+// Query untuk pencarian
+if (!empty($keyword)) {
+    $query = "SELECT * FROM tb_mahasiswa 
+              WHERE nim LIKE '%$keyword%' 
+              OR nama LIKE '%$keyword%' 
+              OR prodi LIKE '%$keyword%' 
+              OR angkatan LIKE '%$keyword%' 
+              OR hobi LIKE '%$keyword%' 
+              OR cita_cita LIKE '%$keyword%' 
+              OR makanan_kesukaan LIKE '%$keyword%'";
+} else {
+    // Jika tidak ada keyword, tampilkan semua data
+    $query = "SELECT * FROM tb_mahasiswa";
+}
+
 $result = mysqli_query($koneksi, $query);
 ?>
 
@@ -19,7 +36,20 @@ $result = mysqli_query($koneksi, $query);
 <body class="bg-gray-100">
     <div class="container mx-auto p-4">
         <h1 class="text-2xl font-bold mb-4">Daftar Mahasiswa</h1>
+
+        <!-- Form Pencarian -->
+        <form method="GET" action="" class="mb-4 flex items-center">
+            <input type="text" name="search" placeholder="Cari mahasiswa..." value="<?php echo htmlspecialchars($keyword); ?>" 
+                   class="w-full px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600 transition duration-300">
+                <i class="fas fa-search"></i> <!-- Ikon Search -->
+            </button>
+        </form>
+
+        <!-- Tombol Tambah Data -->
         <a href="tambah.php" class="bg-blue-500 text-white px-4 py-2 rounded mb-4 inline-block">Tambah Data</a>
+
+        <!-- Tabel Data Mahasiswa -->
         <table class="min-w-full bg-white border border-gray-300 rounded-lg overflow-hidden">
             <thead class="bg-gray-200">
                 <tr>
@@ -44,10 +74,13 @@ $result = mysqli_query($koneksi, $query);
                         <td class="py-3 px-4 border-b border-gray-300"><?php echo $row['cita_cita']; ?></td>
                         <td class="py-3 px-4 border-b border-gray-300"><?php echo $row['makanan_kesukaan']; ?></td>
                         <td class="py-3 px-4 border-b border-gray-300">
-                        <div class="flex items-center space-x-2">
+                            <div class="flex items-center space-x-2">
+                                <!-- Tombol Edit -->
                                 <a href="edit.php?id=<?php echo $row['id']; ?>" class="bg-yellow-500 text-white px-3 py-2 rounded hover:bg-yellow-600 transition duration-300">
                                     <i class="fas fa-pen-to-square"></i>
                                 </a>
+
+                                <!-- Tombol Hapus -->
                                 <a href="hapus.php?id=<?php echo $row['id']; ?>" class="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 transition duration-300" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?');">
                                     <i class="fas fa-trash"></i>
                                 </a>
